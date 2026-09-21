@@ -1,0 +1,11 @@
+services:
+  timesync:
+    build: .
+    image: multi-device-timesync:latest
+    container_name: multi-device-timesync
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - MAX_BODY=20mb
+    restart: unless-stopped

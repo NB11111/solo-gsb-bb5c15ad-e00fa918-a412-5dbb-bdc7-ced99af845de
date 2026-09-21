@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>多设备事件对时 · 现场排障时间线</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">⏱</span>
+      <div>
+        <h1>多设备事件对时</h1>
+        <p class="subtitle">粘贴各设备 JSONL 事件流 · 分段线性校时 · 合并统一时间线</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button id="btn-add-device" class="btn">＋ 添加设备</button>
+      <button id="btn-sample" class="btn btn-ghost">载入示例</button>
+      <button id="btn-align" class="btn btn-primary">开始对时</button>
+    </div>
+  </header>
+
+  <main>
+    <div id="global-error" class="alert alert-error" hidden></div>
+
+    <section id="devices" class="device-grid" aria-label="设备列表"></section>
+
+    <section id="result-section" class="result" hidden>
+      <div class="result-head">
+        <h2>统一时间线</h2>
+        <div class="result-controls">
+          <label class="mode-switch">
+            时间显示
+            <select id="time-mode">
+              <option value="corrected">校正时间（基准）</option>
+              <option value="raw">原始本地时间</option>
+            </select>
+          </label>
+          <button id="btn-export" class="btn">⬇ 导出合并 JSONL</button>
+        </div>
+      </div>
+
+      <div id="stats" class="stats"></div>
+      <div id="bad-events" class="alert alert-warn" hidden></div>
+
+      <div class="table-wrap">
+        <table id="timeline-table">
+          <thead>
+            <tr>
+              <th class="col-idx">#</th>
+              <th class="col-time">主时间</th>
+              <th class="col-time-sub">副时间</th>
+              <th class="col-device">设备</th>
+              <th>事件（原始 JSON）</th>
+              <th class="col-flag">标记</th>
+            </tr>
+          </thead>
+          <tbody id="timeline-body"></tbody>
+        </table>
+      </div>
+      <p class="hint">
+        校正规则：相邻锚点间分段线性插值，锚点覆盖区间外按最近段斜率<strong>外推</strong>（琥珀色标记）；
+        仅含单个锚点时做整体平移。导出 JSONL 会在每条事件上附加 <code>_deviceId / _localTs / _correctedTs / _extrapolated</code> 字段，原始字段保持不变。
+      </p>
+    </section>
+  </main>
+
+  <template id="device-template">
+    <article class="device-card">
+      <div class="device-head">
+        <div class="device-title">
+          <span class="device-drag" title="设备">📟</span>
+          <input class="device-name" placeholder="设备 ID（如 cam-a / nvr-01）" />
+          <input class="device-display-name" placeholder="备注名（可选）" />
+        </div>
+        <button class="btn btn-ghost btn-remove" title="删除该设备">删除</button>
+      </div>
+
+      <div class="device-body">
+        <fieldset class="anchors">
+          <legend>同步锚点（本地时间 → 基准时间，可多个）</legend>
+          <div class="anchor-rows"></div>
+          <button type="button" class="btn btn-small btn-add-anchor">＋ 添加锚点</button>
+          <p class="micro">支持 ISO 8601（如 2026-09-21T10:00:00Z）或 epoch（毫秒/秒）。锚点必须按本地时间升序依次填写，本地时间或基准时间倒序/重复将被拒绝。</p>
+          <div class="device-error alert alert-error" hidden></div>
+        </fieldset>
+
+        <fieldset class="events-box">
+          <legend>JSONL 事件流（每行一个 JSON，需含时间字段 ts / time / timestamp / @timestamp / eventTime / logTime / datetime）</legend>
+          <textarea class="events-input" spellcheck="false" placeholder='{"ts":"2026-09-21T10:00:01.200Z","level":"info","msg":"boot"}'></textarea>
+          <div class="events-meta">
+            <span class="parse-status"></span>
+            <span class="line-errors"></span>
+          </div>
+        </fieldset>
+      </div>
+    </article>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>

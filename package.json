@@ -1,0 +1,16 @@
+{
+  "name": "multi-device-timesync",
+  "version": "1.0.0",
+  "description": "现场排障多设备事件对时与统一时间线合并工具",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test test/"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
